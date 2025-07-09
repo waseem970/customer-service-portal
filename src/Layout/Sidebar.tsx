@@ -126,24 +126,7 @@ const Sidebar: React.FC<SidebarProps> = ({
           ))}
         </nav>
 
-        {/* Footer - Fixed at bottom */}
-        <div className="p-4  ">
-          {/* <div className="text-xs text-gray-500 text-center mb-4">
-            <TextSmall>© 2025 InsureSecure</TextSmall>
-            <TextSmall className="mt-1">Customer Service Portal</TextSmall>
-          </div> */}
-          
-          {/* Logout Button */}
-          {onLogout && (
-            <button
-              onClick={onLogout}
-              className="w-full flex items-center justify-center space-x-2 px-3 py-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-            >
-              {/* <LogOut className="w-4 h-4" />
-              <TextSmall className="text-sm font-medium">Sign Out</TextSmall> */}
-            </button>
-          )}
-        </div>
+
       </div>
     </>
   );
