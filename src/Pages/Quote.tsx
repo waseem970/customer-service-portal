@@ -1,14 +1,16 @@
 import React, { useState } from 'react';
 import { ChevronLeft, ChevronRight, Check, AlertCircle } from 'lucide-react';
 import { Button, H1, H2, H3, Text, TextSmall, TextLarge, Label } from '../components/common';
+import TextField from '../components/common/TextField';
+import Dropdown from '../components/common/Dropdown';
 
 // Move these field components OUTSIDE the main function to prevent remounting and input focus loss
-const InputField = ({ 
-  label, 
-  name, 
-  type = 'text', 
-  value, 
-  onChange, 
+const InputField = ({
+  label,
+  name,
+  type = 'text',
+  value,
+  onChange,
   required = false,
   placeholder = '',
   className = '',
@@ -28,7 +30,7 @@ const InputField = ({
     <Label>
       {label} {required && <span className="text-red-500">*</span>}
     </Label>
-    <input
+    <TextField
       type={type}
       name={name}
       value={value}
@@ -37,6 +39,7 @@ const InputField = ({
       className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
         errors[name] ? 'border-red-500' : 'border-gray-300'
       }`}
+      required={required}
     />
     {errors[name] && (
       <div className="flex items-center mt-1 text-red-500 text-sm">
@@ -47,12 +50,12 @@ const InputField = ({
   </div>
 );
 
-const SelectField = ({ 
-  label, 
-  name, 
-  value, 
-  onChange, 
-  options, 
+const SelectField = ({
+  label,
+  name,
+  value,
+  onChange,
+  options,
   required = false,
   className = '',
   errors = {}
@@ -70,21 +73,19 @@ const SelectField = ({
     <Label>
       {label} {required && <span className="text-red-500">*</span>}
     </Label>
-    <select
+    <Dropdown
       name={name}
       value={value}
       onChange={onChange}
+      options={[
+        { label: `Select ${label}`, value: '' },
+        ...options.map((option) => ({ label: option, value: option }))
+      ]}
       className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
         errors[name] ? 'border-red-500' : 'border-gray-300'
       }`}
-    >
-      <option value="">Select {label}</option>
-      {options.map((option) => (
-        <option key={option} value={option}>
-          {option}
-        </option>
-      ))}
-    </select>
+      required={required}
+    />
     {errors[name] && (
       <div className="flex items-center mt-1 text-red-500 text-sm">
         <AlertCircle className="w-4 h-4 mr-1" />
@@ -363,6 +364,7 @@ export default function InsuranceQuoteForm() {
       <div className="max-w-4xl mx-auto">
         {/* Header */}
         <div className="text-center mb-8">
+            <H1>Get Your Insurance Quote</H1>
         
           <Text>
             Complete the form below to receive a personalized quote from our advisors
