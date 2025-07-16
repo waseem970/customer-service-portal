@@ -56,7 +56,7 @@ const Button: React.FC<ButtonProps> = ({
     ${className}
   `.trim();
   
-  const primaryColor = '#37517e';
+  const primaryColor = '#425985';
   
   return (
     <button
@@ -86,4 +86,4 @@ const Button: React.FC<ButtonProps> = ({
   );
 };
 
-export default Button; 
+export default Button;
