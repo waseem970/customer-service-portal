@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Search, Download, Calendar, X, Check, AlertCircle, FileText } from 'lucide-react';
 import { Button, Table, H1, H2, H3, Text, TextSmall, TextLarge, Label } from '../components/common';
+import { TextField } from '../components/common';
+import { Dropdown } from '../components/common';
 
 interface Policy {
   id: string;
@@ -293,7 +295,7 @@ const Policy: React.FC = () => {
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="mb-8">
-       
+          <H1>Policy Management</H1>
           <Text>View and manage your insurance policies</Text>
         </div>
 
@@ -320,30 +322,34 @@ const Policy: React.FC = () => {
           <div className="flex flex-col sm:flex-row gap-4">
             <div className="flex-1 relative">
               <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-              <input
+              <TextField
                 type="text"
                 placeholder="Search by Policy Number..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                style={{ paddingLeft: '2.5rem' }}
+                aria-label="Search by Policy Number"
               />
             </div>
-            <select
+            <Dropdown
               value={selectedType}
               onChange={(e) => setSelectedType(e.target.value)}
+              options={[
+                { value: '', label: 'All Policy Types' },
+                { value: 'Auto', label: 'Auto' },
+                { value: 'Home', label: 'Home' },
+                { value: 'Life', label: 'Life' }
+              ]}
               className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            >
-              <option value="">All Policy Types</option>
-              <option value="Auto">Auto</option>
-              <option value="Home">Home</option>
-              <option value="Life">Life</option>
-            </select>
+              aria-label="Filter by Policy Type"
+            />
           </div>
         </div>
 
         {/* Policy Table */}
         <div className="bg-white rounded-lg shadow-sm overflow-hidden">
-          <div className="overflow-x-auto scrollbar-hide" style={{ scrollbarWidth: 'none' }}>
+          <div className="overflow-x-auto">
             <table className="w-full">
               <thead className="bg-gray-50">
                 <tr>
@@ -517,19 +523,21 @@ const Policy: React.FC = () => {
                 <Label>
                   Reason for Cancellation *
                 </Label>
-                <select
+                <Dropdown
                   value={cancellationReason}
                   onChange={(e) => setCancellationReason(e.target.value)}
+                  options={[
+                    { value: '', label: 'Select a reason' },
+                    { value: 'Found better coverage', label: 'Found better coverage' },
+                    { value: 'Financial constraints', label: 'Financial constraints' },
+                    { value: 'No longer need coverage', label: 'No longer need coverage' },
+                    { value: 'Dissatisfied with service', label: 'Dissatisfied with service' },
+                    { value: 'Other', label: 'Other' }
+                  ]}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   required
-                >
-                  <option value="">Select a reason</option>
-                  <option value="Found better coverage">Found better coverage</option>
-                  <option value="Financial constraints">Financial constraints</option>
-                  <option value="No longer need coverage">No longer need coverage</option>
-                  <option value="Dissatisfied with service">Dissatisfied with service</option>
-                  <option value="Other">Other</option>
-                </select>
+                  aria-label="Reason for Cancellation"
+                />
               </div>
               <div>
                 <Label>
