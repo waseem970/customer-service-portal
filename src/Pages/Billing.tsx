@@ -1,8 +1,7 @@
 import React, { useState } from 'react';
 import { Calendar, Download, Plus, Edit, Trash2, CreditCard, FileText, Bell, CheckCircle, XCircle, Clock, AlertCircle } from 'lucide-react';
-import { Button, Table, H1, H2, H3, Text, TextSmall, TextLarge, Label } from '../components/common';
-import Dropdown from '../components/common/Dropdown';
-import TextField from '../components/common/TextField';
+import { Button, Table, H1, H2, H3, Text, TextSmall, TextLarge, Label,Dropdown, TextField } from '../components/common';
+import Toggle from '../components/common/Toggle';
 
 // Types
 interface BillingRecord {
@@ -41,6 +40,22 @@ const BillingPayments: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [editMethodId, setEditMethodId] = useState<string | null>(null);
+  const [editPaymentMethod, setEditPaymentMethod] = useState<{
+    cardNumber: string;
+    expiryDate: string;
+    cvv: string;
+    cardholderName: string;
+    type: 'credit' | 'debit' | 'ach' | 'digital';
+    isDefault?: boolean;
+  }>({
+    cardNumber: '',
+    expiryDate: '',
+    cvv: '',
+    cardholderName: '',
+    type: 'credit'
+  });
+  const [showEditModal, setShowEditModal] = useState(false);
 
   // Sample data
   const [billingHistory] = useState<BillingRecord[]>([
@@ -90,12 +105,18 @@ const BillingPayments: React.FC = () => {
     push: true
   });
 
-  const [newPaymentMethod, setNewPaymentMethod] = useState({
+  const [newPaymentMethod, setNewPaymentMethod] = useState<{
+    cardNumber: string;
+    expiryDate: string;
+    cvv: string;
+    cardholderName: string;
+    type: 'credit' | 'debit' | 'ach' | 'digital';
+  }>({
     cardNumber: '',
     expiryDate: '',
     cvv: '',
     cardholderName: '',
-    type: 'credit' as const
+    type: 'credit'
   });
 
   const [refundRequest, setRefundRequest] = useState({
@@ -122,14 +143,13 @@ const BillingPayments: React.FC = () => {
     }
   };
 
+  // Improved card number validation: allow spaces, check for 16 digits
   const validateCardNumber = (cardNumber: string): boolean => {
-    // Simple Luhn algorithm implementation
-    const digits = cardNumber.replace(/\s/g, '');
+    const digits = cardNumber.replace(/\s+/g, '');
     if (!/^\d{16}$/.test(digits)) return false;
-    
+    // Luhn algorithm
     let sum = 0;
     let isEven = false;
-    
     for (let i = digits.length - 1; i >= 0; i--) {
       let digit = parseInt(digits[i]);
       if (isEven) {
@@ -139,7 +159,6 @@ const BillingPayments: React.FC = () => {
       sum += digit;
       isEven = !isEven;
     }
-    
     return sum % 10 === 0;
   };
 
@@ -170,7 +189,8 @@ const BillingPayments: React.FC = () => {
       return;
     }
     
-    const maskedCardNumber = `**** **** **** ${newPaymentMethod.cardNumber.slice(-4)}`;
+    const digits = newPaymentMethod.cardNumber.replace(/\s+/g, '');
+    const maskedCardNumber = `**** **** **** ${digits.slice(-4)}`;
     const newMethod: PaymentMethod = {
       id: Date.now().toString(),
       type: newPaymentMethod.type,
@@ -184,6 +204,49 @@ const BillingPayments: React.FC = () => {
     setNewPaymentMethod({ cardNumber: '', expiryDate: '', cvv: '', cardholderName: '', type: 'credit' });
     setShowAddPaymentModal(false);
     setSuccessMessage('Payment method added successfully');
+    setTimeout(() => setSuccessMessage(null), 3000);
+  };
+
+  // Edit Payment Method handlers
+  const handleEditClick = (method: PaymentMethod) => {
+    setEditMethodId(method.id);
+    setEditPaymentMethod({
+      cardNumber: '',
+      expiryDate: method.expiryDate,
+      cvv: '',
+      cardholderName: method.cardholderName,
+      type: method.type
+    });
+    setShowEditModal(true);
+  };
+
+  const handleEditSave = (id: string) => {
+    if (editPaymentMethod.cardNumber && !validateCardNumber(editPaymentMethod.cardNumber)) {
+      setError('Invalid card number');
+      return;
+    }
+    if (!validateExpiryDate(editPaymentMethod.expiryDate)) {
+      setError('Expiry date cannot be in the past');
+      return;
+    }
+    setPaymentMethods(prev =>
+      prev.map(method =>
+        method.id === id
+          ? {
+            ...method,
+            cardNumber: editPaymentMethod.cardNumber
+              ? `**** **** **** ${editPaymentMethod.cardNumber.replace(/\s+/g, '').slice(-4)}`
+              : method.cardNumber,
+            expiryDate: editPaymentMethod.expiryDate,
+            cardholderName: editPaymentMethod.cardholderName,
+            isDefault: editPaymentMethod.isDefault ?? method.isDefault
+          }
+        : (editPaymentMethod.isDefault ? { ...method, isDefault: false } : method)
+      )
+    );
+    setEditMethodId(null);
+    setShowEditModal(false);
+    setSuccessMessage('Payment method updated successfully');
     setTimeout(() => setSuccessMessage(null), 3000);
   };
 
@@ -223,8 +286,23 @@ const BillingPayments: React.FC = () => {
     setTimeout(() => setSuccessMessage(null), 3000);
   };
 
+  // Filtered billing history with date range and status filter
   const filteredBillingHistory = billingHistory.filter(record => {
+    // Status filter
     if (statusFilter !== 'all' && record.paymentStatus !== statusFilter) return false;
+
+    // Date range filter
+    if (dateRange.from) {
+      const fromDate = new Date(dateRange.from);
+      const recordDate = new Date(record.date);
+      if (recordDate < fromDate) return false;
+    }
+    if (dateRange.to) {
+      const toDate = new Date(dateRange.to);
+      const recordDate = new Date(record.date);
+      if (recordDate > toDate) return false;
+    }
+
     return true;
   });
 
@@ -281,7 +359,7 @@ const BillingPayments: React.FC = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-gray-50" style={{ fontFamily: 'Roboto, sans-serif' }}>
+    <div className="min-h-screen bg-gray-50 font-sans">
       <div className="max-w-7xl mx-auto p-6">
         {/* Header */}
         <div className="mb-8">
@@ -412,7 +490,7 @@ const BillingPayments: React.FC = () => {
                       </div>
                     </div>
                     <div className="flex items-center gap-2">
-                      <Button variant="outline" size="sm" icon={Edit}>
+                      <Button variant="outline" size="sm" icon={Edit} onClick={() => handleEditClick(method)}>
                         Edit
                       </Button>
                       <Button variant="danger" size="sm" icon={Trash2}>
@@ -423,54 +501,287 @@ const BillingPayments: React.FC = () => {
                 ))}
               </div>
 
+              {/* Edit Payment Method Modal */}
+              {showEditModal && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+                  <div className="bg-white rounded-lg max-w-md w-full p-6">
+                    <H3>Edit Payment Method</H3>
+                    <div className="space-y-4">
+                      {/* Remove the Payment Method Type select from edit */}
+                      {/* Only show fields relevant to the existing method type */}
+                      {/* Credit/Debit Card fields */}
+                      {(editPaymentMethod.type === 'credit' || editPaymentMethod.type === 'debit') && (
+                        <>
+                          <div>
+                            <Label>{editPaymentMethod.type === 'credit' ? 'Credit' : 'Debit'} Card Number</Label>
+                            <input
+                              type="text"
+                              placeholder="Card Number (leave blank to keep unchanged)"
+                              value={editPaymentMethod.cardNumber}
+                              onChange={e => setEditPaymentMethod(prev => ({ ...prev, cardNumber: e.target.value }))}
+                              className="w-full border border-gray-300 rounded-md px-3 py-2"
+                            />
+                          </div>
+                          <div className="grid grid-cols-2 gap-4">
+                            <div>
+                              <Label>Expiry Date</Label>
+                              <input
+                                type="text"
+                                placeholder="MM/YY"
+                                value={editPaymentMethod.expiryDate}
+                                onChange={e => setEditPaymentMethod(prev => ({ ...prev, expiryDate: e.target.value }))}
+                                className="w-full border border-gray-300 rounded-md px-3 py-2"
+                              />
+                            </div>
+                            <div>
+                              <Label>CVV</Label>
+                              <input
+                                type="text"
+                                placeholder="123"
+                                value={editPaymentMethod.cvv}
+                                onChange={e => setEditPaymentMethod(prev => ({ ...prev, cvv: e.target.value }))}
+                                className="w-full border border-gray-300 rounded-md px-3 py-2"
+                              />
+                            </div>
+                          </div>
+                          <div>
+                            <Label>Cardholder Name</Label>
+                            <input
+                              type="text"
+                              placeholder="Cardholder Name"
+                              value={editPaymentMethod.cardholderName}
+                              onChange={e => setEditPaymentMethod(prev => ({ ...prev, cardholderName: e.target.value }))}
+                              className="w-full border border-gray-300 rounded-md px-3 py-2"
+                            />
+                          </div>
+                        </>
+                      )}
+                      {/* ACH fields */}
+                      {editPaymentMethod.type === 'ach' && (
+                        <>
+                          <div>
+                            <Label>Account Holder Name</Label>
+                            <input
+                              type="text"
+                              placeholder="Account Holder Name"
+                              value={editPaymentMethod.cardholderName}
+                              onChange={e => setEditPaymentMethod(prev => ({ ...prev, cardholderName: e.target.value }))}
+                              className="w-full border border-gray-300 rounded-md px-3 py-2"
+                            />
+                          </div>
+                          <div>
+                            <Label>Bank Account Number</Label>
+                            <input
+                              type="text"
+                              placeholder="Account Number"
+                              value={editPaymentMethod.cardNumber}
+                              onChange={e => setEditPaymentMethod(prev => ({ ...prev, cardNumber: e.target.value }))}
+                              className="w-full border border-gray-300 rounded-md px-3 py-2"
+                            />
+                          </div>
+                          <div>
+                            <Label>Routing Number</Label>
+                            <input
+                              type="text"
+                              placeholder="Routing Number"
+                              value={editPaymentMethod.cvv}
+                              onChange={e => setEditPaymentMethod(prev => ({ ...prev, cvv: e.target.value }))}
+                              className="w-full border border-gray-300 rounded-md px-3 py-2"
+                            />
+                          </div>
+                        </>
+                      )}
+                      {/* Digital Wallet fields */}
+                      {editPaymentMethod.type === 'digital' && (
+                        <>
+                          <div>
+                            <Label>Wallet Provider</Label>
+                            <input
+                              type="text"
+                              placeholder="PayPal, Google Pay, etc."
+                              value={editPaymentMethod.cardholderName}
+                              onChange={e => setEditPaymentMethod(prev => ({ ...prev, cardholderName: e.target.value }))}
+                              className="w-full border border-gray-300 rounded-md px-3 py-2"
+                            />
+                          </div>
+                          <div>
+                            <Label>Wallet Email / ID</Label>
+                            <input
+                              type="text"
+                              placeholder="your@email.com"
+                              value={editPaymentMethod.cardNumber}
+                              onChange={e => setEditPaymentMethod(prev => ({ ...prev, cardNumber: e.target.value }))}
+                              className="w-full border border-gray-300 rounded-md px-3 py-2"
+                            />
+                          </div>
+                        </>
+                      )}
+                      <div>
+                        <Label>
+                          <input
+                            type="checkbox"
+                            checked={!!editPaymentMethod.isDefault}
+                            onChange={e =>
+                              setEditPaymentMethod(prev => ({
+                                ...prev,
+                                isDefault: e.target.checked
+                              }))
+                            }
+                            className="mr-2"
+                          />
+                          Set as default payment method
+                        </Label>
+                      </div>
+                    </div>
+                    <div className="flex justify-end gap-4 mt-6">
+                      <Button
+                        variant="outline"
+                        onClick={() => {
+                          setShowEditModal(false);
+                          setEditMethodId(null);
+                        }}
+                      >
+                        Cancel
+                      </Button>
+                      <Button
+                        onClick={() => handleEditSave(editMethodId!)}
+                      >
+                        Save
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              )}
+
               {/* Add Payment Method Modal */}
               {showAddPaymentModal && (
                 <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
                   <div className="bg-white rounded-lg max-w-md w-full p-6">
                     <H3>Add Payment Method</H3>
                     <div className="space-y-4">
-                      <div>
-                        <Label>Card Number</Label>
-                        <TextField
-                          type="text"
-                          value={newPaymentMethod.cardNumber}
-                          onChange={(e) => setNewPaymentMethod(prev => ({ ...prev, cardNumber: e.target.value }))}
-                          placeholder="1234 5678 9012 3456"
-                          className="w-full border border-gray-300 rounded-md px-3 py-2"
-                        />
-                      </div>
-                      <div className="grid grid-cols-2 gap-4">
-                        <div>
-                          <Label>Expiry Date</Label>
-                          <TextField
-                            type="text"
-                            value={newPaymentMethod.expiryDate}
-                            onChange={(e) => setNewPaymentMethod(prev => ({ ...prev, expiryDate: e.target.value }))}
-                            placeholder="MM/YY"
-                            className="w-full border border-gray-300 rounded-md px-3 py-2"
-                          />
-                        </div>
-                        <div>
-                          <Label>CVV</Label>
-                          <TextField
-                            type="text"
-                            value={newPaymentMethod.cvv}
-                            onChange={(e) => setNewPaymentMethod(prev => ({ ...prev, cvv: e.target.value }))}
-                            placeholder="123"
-                            className="w-full border border-gray-300 rounded-md px-3 py-2"
-                          />
-                        </div>
-                      </div>
-                      <div>
-                        <Label>Cardholder Name</Label>
-                        <TextField
-                          type="text"
-                          value={newPaymentMethod.cardholderName}
-                          onChange={(e) => setNewPaymentMethod(prev => ({ ...prev, cardholderName: e.target.value }))}
-                          placeholder="John Doe"
-                          className="w-full border border-gray-300 rounded-md px-3 py-2"
-                        />
-                      </div>
+                      {/* Payment Method Type select */}
+                      <Label>Payment Method Type</Label>
+                      <select
+                        value={newPaymentMethod.type}
+                        onChange={e => setNewPaymentMethod(prev => ({
+                          ...prev,
+                          type: e.target.value as 'credit' | 'debit' | 'ach' | 'digital'
+                        }))}
+                        className="w-full border border-gray-300 rounded-md px-3 py-2"
+                      >
+                        <option value="credit">Credit Card</option>
+                        <option value="debit">Debit Card</option>
+                        <option value="ach">Bank Account (ACH)</option>
+                        <option value="digital">Digital Wallet</option>
+                      </select>
+
+                      {/* Credit/Debit Card fields */}
+                      {(newPaymentMethod.type === 'credit' || newPaymentMethod.type === 'debit') && (
+                        <>
+                          <div>
+                            <Label>{newPaymentMethod.type === 'credit' ? 'Credit' : 'Debit'} Card Number</Label>
+                            <TextField
+                              type="text"
+                              value={newPaymentMethod.cardNumber}
+                              onChange={e => setNewPaymentMethod(prev => ({ ...prev, cardNumber: e.target.value }))}
+                              placeholder="1234 5678 9012 3456"
+                              className="w-full border border-gray-300 rounded-md px-3 py-2"
+                            />
+                          </div>
+                          <div className="grid grid-cols-2 gap-4">
+                            <div>
+                              <Label>Expiry Date</Label>
+                              <TextField
+                                type="text"
+                                value={newPaymentMethod.expiryDate}
+                                onChange={e => setNewPaymentMethod(prev => ({ ...prev, expiryDate: e.target.value }))}
+                                placeholder="MM/YY"
+                                className="w-full border border-gray-300 rounded-md px-3 py-2"
+                              />
+                            </div>
+                            <div>
+                              <Label>CVV</Label>
+                              <TextField
+                                type="text"
+                                value={newPaymentMethod.cvv}
+                                onChange={e => setNewPaymentMethod(prev => ({ ...prev, cvv: e.target.value }))}
+                                placeholder="123"
+                                className="w-full border border-gray-300 rounded-md px-3 py-2"
+                              />
+                            </div>
+                          </div>
+                          <div>
+                            <Label>Cardholder Name</Label>
+                            <TextField
+                              type="text"
+                              value={newPaymentMethod.cardholderName}
+                              onChange={e => setNewPaymentMethod(prev => ({ ...prev, cardholderName: e.target.value }))}
+                              placeholder="John Doe"
+                              className="w-full border border-gray-300 rounded-md px-3 py-2"
+                            />
+                          </div>
+                        </>
+                      )}
+                      {/* ACH fields */}
+                      {newPaymentMethod.type === 'ach' && (
+                        <>
+                          <div>
+                            <Label>Account Holder Name</Label>
+                            <TextField
+                              type="text"
+                              value={newPaymentMethod.cardholderName}
+                              onChange={e => setNewPaymentMethod(prev => ({ ...prev, cardholderName: e.target.value }))}
+                              placeholder="John Doe"
+                              className="w-full border border-gray-300 rounded-md px-3 py-2"
+                            />
+                          </div>
+                          <div>
+                            <Label>Bank Account Number</Label>
+                            <TextField
+                              type="text"
+                              value={newPaymentMethod.cardNumber}
+                              onChange={e => setNewPaymentMethod(prev => ({ ...prev, cardNumber: e.target.value }))}
+                              placeholder="Account Number"
+                              className="w-full border border-gray-300 rounded-md px-3 py-2"
+                            />
+                          </div>
+                          <div>
+                            <Label>Routing Number</Label>
+                            <TextField
+                              type="text"
+                              value={newPaymentMethod.cvv}
+                              onChange={e => setNewPaymentMethod(prev => ({ ...prev, cvv: e.target.value }))}
+                              placeholder="Routing Number"
+                              className="w-full border border-gray-300 rounded-md px-3 py-2"
+                            />
+                          </div>
+                        </>
+                      )}
+                      {/* Digital Wallet fields */}
+                      {newPaymentMethod.type === 'digital' && (
+                        <>
+                          <div>
+                            <Label>Wallet Provider</Label>
+                            <TextField
+                              type="text"
+                              value={newPaymentMethod.cardholderName}
+                              onChange={e => setNewPaymentMethod(prev => ({ ...prev, cardholderName: e.target.value }))}
+                              placeholder="PayPal, Google Pay, etc."
+                              className="w-full border border-gray-300 rounded-md px-3 py-2"
+                            />
+                          </div>
+                          <div>
+                            <Label>Wallet Email / ID</Label>
+                            <TextField
+                              type="text"
+                              value={newPaymentMethod.cardNumber}
+                              onChange={e => setNewPaymentMethod(prev => ({ ...prev, cardNumber: e.target.value }))}
+                              placeholder="your@email.com"
+                              className="w-full border border-gray-300 rounded-md px-3 py-2"
+                            />
+                          </div>
+                        </>
+                      )}
                     </div>
                     <div className="flex justify-end gap-4 mt-6">
                       <Button
@@ -487,6 +798,7 @@ const BillingPayments: React.FC = () => {
                 </div>
               )}
             </div>
+
           </div>
         )}
 
@@ -504,12 +816,10 @@ const BillingPayments: React.FC = () => {
                     }
                   </Text>
                 </div>
-                <Button
-                  variant={autopayEnabled ? 'primary' : 'outline'}
-                  onClick={handleToggleAutopay}
-                >
-                  {autopayEnabled ? 'Enabled' : 'Disabled'}
-                </Button>
+                <Toggle
+                  checked={autopayEnabled}
+                  onChange={setAutopayEnabled}
+                />
               </div>
               
               {autopayEnabled && (
@@ -607,22 +917,23 @@ const BillingPayments: React.FC = () => {
             <H2>Notification Preferences</H2>
             <div className="space-y-6">
               <div className="space-y-4">
-                {[
-                  { key: 'email', label: 'Email Alerts', description: 'Receive billing alerts via email' },
-                  { key: 'sms', label: 'SMS Alerts', description: 'Receive billing alerts via text message' },
-                  { key: 'push', label: 'Push Notifications', description: 'Receive billing alerts as push notifications' }
-                ].map((pref) => (
-                  <div key={pref.key} className="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
+                {Object.entries(notificationPrefs).map(([key, value]) => (
+                  <div key={key} className="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
                     <div>
-                      <H3>{pref.label}</H3>
-                      <TextSmall>{pref.description}</TextSmall>
+                      <H3>{key.charAt(0).toUpperCase() + key.slice(1)} Alerts</H3>
+                      <TextSmall>
+                        Receive billing alerts via {key === 'push' ? 'push notifications' : `your ${key}`}.
+                      </TextSmall>
                     </div>
-                    <Button
-                      variant={notificationPrefs[pref.key as keyof NotificationPreferences] ? 'primary' : 'outline'}
-                      onClick={() => setNotificationPrefs(prev => ({ ...prev, [pref.key]: !prev[pref.key as keyof NotificationPreferences] }))}
-                    >
-                      {notificationPrefs[pref.key as keyof NotificationPreferences] ? 'Enabled' : 'Disabled'}
-                    </Button>
+                    <Toggle
+                      checked={value}
+                      onChange={checked =>
+                        setNotificationPrefs(prev => ({
+                          ...prev,
+                          [key]: checked
+                        }))
+                      }
+                    />
                   </div>
                 ))}
               </div>
