@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Calendar, Download, Plus, Edit, Trash2, CreditCard, FileText, Bell, CheckCircle, XCircle, Clock, AlertCircle } from 'lucide-react';
-import { Button, Table, H2, H3, Text, TextSmall, TextLarge, Label } from '../components/common';
-import SwitchToggle from '../components/common/Toggle';
+import { Button, Table, H1, H2, H3, Text, TextSmall, TextLarge, Label,Dropdown, TextField } from '../components/common';
+import Toggle from '../components/common/Toggle';
 
 // Types
 interface BillingRecord {
@@ -363,6 +363,7 @@ const BillingPayments: React.FC = () => {
       <div className="max-w-7xl mx-auto p-6">
         {/* Header */}
         <div className="mb-8">
+            <H1>Billing & Payments</H1>
          
           <Text>Manage your billing history, payment methods, and preferences</Text>
         </div>
@@ -424,31 +425,32 @@ const BillingPayments: React.FC = () => {
               <div className="flex flex-wrap gap-4 mb-6">
                 <div className="flex items-center gap-2">
                   <Calendar className="w-4 h-4 text-gray-500" />
-                  <input
+                  <TextField
                     type="date"
                     value={dateRange.from}
                     onChange={(e) => setDateRange(prev => ({ ...prev, from: e.target.value }))}
                     className="border border-gray-300 rounded-md px-3 py-2"
                   />
                   <span className="text-gray-500">to</span>
-                  <input
+                  <TextField
                     type="date"
                     value={dateRange.to}
                     onChange={(e) => setDateRange(prev => ({ ...prev, to: e.target.value }))}
                     className="border border-gray-300 rounded-md px-3 py-2"
                   />
                 </div>
-                <select
+                <Dropdown
                   value={statusFilter}
                   onChange={(e) => setStatusFilter(e.target.value)}
+                  options={[
+                    { label: 'All Statuses', value: 'all' },
+                    { label: 'Paid', value: 'Paid' },
+                    { label: 'Failed', value: 'Failed' },
+                    { label: 'Refunded', value: 'Refunded' },
+                    { label: 'Upcoming', value: 'Upcoming' },
+                  ]}
                   className="border border-gray-300 rounded-md px-3 py-2"
-                >
-                  <option value="all">All Statuses</option>
-                  <option value="Paid">Paid</option>
-                  <option value="Failed">Failed</option>
-                  <option value="Refunded">Refunded</option>
-                  <option value="Upcoming">Upcoming</option>
-                </select>
+                />
               </div>
 
               {/* Billing Table */}
@@ -657,28 +659,28 @@ const BillingPayments: React.FC = () => {
                   <div className="bg-white rounded-lg max-w-md w-full p-6">
                     <H3>Add Payment Method</H3>
                     <div className="space-y-4">
-                      <div>
-                        <Label>Payment Method Type</Label>
-                        <select
-                          value={newPaymentMethod.type}
-                          onChange={e => setNewPaymentMethod(prev => ({
-                            ...prev,
-                            type: e.target.value as 'credit' | 'debit' | 'ach' | 'digital'
-                          }))}
-                          className="w-full border border-gray-300 rounded-md px-3 py-2"
-                        >
-                          <option value="credit">Credit Card</option>
-                          <option value="debit">Debit Card</option>
-                          <option value="ach">Bank Account (ACH)</option>
-                          <option value="digital">Digital Wallet</option>
-                        </select>
-                      </div>
+                      {/* Payment Method Type select */}
+                      <Label>Payment Method Type</Label>
+                      <select
+                        value={newPaymentMethod.type}
+                        onChange={e => setNewPaymentMethod(prev => ({
+                          ...prev,
+                          type: e.target.value as 'credit' | 'debit' | 'ach' | 'digital'
+                        }))}
+                        className="w-full border border-gray-300 rounded-md px-3 py-2"
+                      >
+                        <option value="credit">Credit Card</option>
+                        <option value="debit">Debit Card</option>
+                        <option value="ach">Bank Account (ACH)</option>
+                        <option value="digital">Digital Wallet</option>
+                      </select>
+
                       {/* Credit/Debit Card fields */}
                       {(newPaymentMethod.type === 'credit' || newPaymentMethod.type === 'debit') && (
                         <>
                           <div>
                             <Label>{newPaymentMethod.type === 'credit' ? 'Credit' : 'Debit'} Card Number</Label>
-                            <input
+                            <TextField
                               type="text"
                               value={newPaymentMethod.cardNumber}
                               onChange={e => setNewPaymentMethod(prev => ({ ...prev, cardNumber: e.target.value }))}
@@ -689,7 +691,7 @@ const BillingPayments: React.FC = () => {
                           <div className="grid grid-cols-2 gap-4">
                             <div>
                               <Label>Expiry Date</Label>
-                              <input
+                              <TextField
                                 type="text"
                                 value={newPaymentMethod.expiryDate}
                                 onChange={e => setNewPaymentMethod(prev => ({ ...prev, expiryDate: e.target.value }))}
@@ -699,7 +701,7 @@ const BillingPayments: React.FC = () => {
                             </div>
                             <div>
                               <Label>CVV</Label>
-                              <input
+                              <TextField
                                 type="text"
                                 value={newPaymentMethod.cvv}
                                 onChange={e => setNewPaymentMethod(prev => ({ ...prev, cvv: e.target.value }))}
@@ -710,7 +712,7 @@ const BillingPayments: React.FC = () => {
                           </div>
                           <div>
                             <Label>Cardholder Name</Label>
-                            <input
+                            <TextField
                               type="text"
                               value={newPaymentMethod.cardholderName}
                               onChange={e => setNewPaymentMethod(prev => ({ ...prev, cardholderName: e.target.value }))}
@@ -725,7 +727,7 @@ const BillingPayments: React.FC = () => {
                         <>
                           <div>
                             <Label>Account Holder Name</Label>
-                            <input
+                            <TextField
                               type="text"
                               value={newPaymentMethod.cardholderName}
                               onChange={e => setNewPaymentMethod(prev => ({ ...prev, cardholderName: e.target.value }))}
@@ -735,7 +737,7 @@ const BillingPayments: React.FC = () => {
                           </div>
                           <div>
                             <Label>Bank Account Number</Label>
-                            <input
+                            <TextField
                               type="text"
                               value={newPaymentMethod.cardNumber}
                               onChange={e => setNewPaymentMethod(prev => ({ ...prev, cardNumber: e.target.value }))}
@@ -745,7 +747,7 @@ const BillingPayments: React.FC = () => {
                           </div>
                           <div>
                             <Label>Routing Number</Label>
-                            <input
+                            <TextField
                               type="text"
                               value={newPaymentMethod.cvv}
                               onChange={e => setNewPaymentMethod(prev => ({ ...prev, cvv: e.target.value }))}
@@ -760,7 +762,7 @@ const BillingPayments: React.FC = () => {
                         <>
                           <div>
                             <Label>Wallet Provider</Label>
-                            <input
+                            <TextField
                               type="text"
                               value={newPaymentMethod.cardholderName}
                               onChange={e => setNewPaymentMethod(prev => ({ ...prev, cardholderName: e.target.value }))}
@@ -770,7 +772,7 @@ const BillingPayments: React.FC = () => {
                           </div>
                           <div>
                             <Label>Wallet Email / ID</Label>
-                            <input
+                            <TextField
                               type="text"
                               value={newPaymentMethod.cardNumber}
                               onChange={e => setNewPaymentMethod(prev => ({ ...prev, cardNumber: e.target.value }))}
@@ -796,6 +798,7 @@ const BillingPayments: React.FC = () => {
                 </div>
               )}
             </div>
+
           </div>
         )}
 
@@ -813,7 +816,7 @@ const BillingPayments: React.FC = () => {
                     }
                   </Text>
                 </div>
-                <SwitchToggle
+                <Toggle
                   checked={autopayEnabled}
                   onChange={setAutopayEnabled}
                 />
@@ -847,18 +850,18 @@ const BillingPayments: React.FC = () => {
               <div className="space-y-6">
                 <div>
                   <Label>Select Transaction</Label>
-                  <select
+                  <Dropdown
                     value={refundRequest.transactionId}
                     onChange={(e) => setRefundRequest(prev => ({ ...prev, transactionId: e.target.value }))}
+                    options={[
+                      { label: 'Choose a transaction...', value: '' },
+                      ...billingHistory.filter(record => record.paymentStatus === 'Paid').map(record => ({
+                        label: `${record.invoiceNumber} - ${formatCurrency(record.amount)} (${new Date(record.date).toLocaleDateString()})`,
+                        value: record.id
+                      }))
+                    ]}
                     className="w-full border border-gray-300 rounded-md px-3 py-2"
-                  >
-                    <option value="">Choose a transaction...</option>
-                    {billingHistory.filter(record => record.paymentStatus === 'Paid').map(record => (
-                      <option key={record.id} value={record.id}>
-                        {record.invoiceNumber} - {formatCurrency(record.amount)} ({new Date(record.date).toLocaleDateString()})
-                      </option>
-                    ))}
-                  </select>
+                  />
                 </div>
                 
                 <div>
@@ -877,9 +880,10 @@ const BillingPayments: React.FC = () => {
                 
                 <div>
                   <Label>Supporting Document</Label>
-                  <input
+                  <TextField
                     type="file"
-                    onChange={(e) => setRefundRequest(prev => ({ ...prev, document: e.target.files?.[0] || null }))}
+                    value={''}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => setRefundRequest(prev => ({ ...prev, document: e.target.files?.[0] || null }))}
                     accept=".pdf,.jpg,.jpeg,.png"
                     className="w-full border border-gray-300 rounded-md px-3 py-2"
                   />
@@ -921,7 +925,7 @@ const BillingPayments: React.FC = () => {
                         Receive billing alerts via {key === 'push' ? 'push notifications' : `your ${key}`}.
                       </TextSmall>
                     </div>
-                    <SwitchToggle
+                    <Toggle
                       checked={value}
                       onChange={checked =>
                         setNotificationPrefs(prev => ({

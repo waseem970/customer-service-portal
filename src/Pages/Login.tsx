@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Eye, EyeOff, Shield, Lock, User, AlertCircle, CheckCircle } from 'lucide-react';
 import { Button, H1, H2, H3, Text, TextSmall, TextLarge, Label } from '../components/common';
+import TextField from '../components/common/TextField';
 
 interface LoginProps {
   onLogin: (userData: any) => void;
@@ -129,7 +130,7 @@ const InsuranceLoginPage: React.FC<LoginProps> = ({ onLogin }) => {
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                   <User className="h-5 w-5 text-gray-400" />
                 </div>
-                <input
+                <TextField
                   type="email"
                   id="username"
                   name="username"
@@ -161,7 +162,7 @@ const InsuranceLoginPage: React.FC<LoginProps> = ({ onLogin }) => {
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                   <Lock className="h-5 w-5 text-gray-400" />
                 </div>
-                <input
+                <TextField
                   type={showPassword ? 'text' : 'password'}
                   id="password"
                   name="password"
@@ -262,4 +263,4 @@ const InsuranceLoginPage: React.FC<LoginProps> = ({ onLogin }) => {
   );
 };
 
-export default InsuranceLoginPage;
+export default InsuranceLoginPage; // This component can be used in your main App component or wherever you need the login functionality.

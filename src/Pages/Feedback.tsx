@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { Search, ChevronDown, ChevronUp, ThumbsUp, ThumbsDown, Phone, Mail, MessageCircle, Star, Upload, Check } from 'lucide-react';
 import { Button, H1, H2, H3, Text, TextSmall, TextLarge, Label } from '../components/common';
+import Dropdown from '../components/common/Dropdown';
+import TextField from '../components/common/TextField';
  
 interface FAQ {
   id: string;
@@ -133,6 +135,10 @@ const Feedback: React.FC = () => {
   return (
     <div className="min-h-screen bg-gray-50 py-8 px-4 sm:px-6 lg:px-8" style={{ fontFamily: 'Helvetica, Arial, sans-serif' }}>
       <div className="max-w-4xl mx-auto">
+          <div className="text-center mb-8">
+          <H1>Help & Feedback</H1>
+          <Text>Find answers, get support, or share your thoughts with us</Text>
+        </div>
   
  
         {/* Searchable FAQ Section */}
@@ -241,19 +247,20 @@ const Feedback: React.FC = () => {
               <div className="space-y-4">
                 <div>
                   <Label>Subject</Label>
-                  <select
+                  <Dropdown
                     value={emailSupport.subject}
                     onChange={(e) => setEmailSupport(prev => ({ ...prev, subject: e.target.value }))}
+                    options={[
+                      { label: 'Select a subject', value: '' },
+                      { label: 'Account', value: 'Account' },
+                      { label: 'Billing', value: 'Billing' },
+                      { label: 'Claims', value: 'Claims' },
+                      { label: 'Technical Issue', value: 'Technical Issue' },
+                      { label: 'Other', value: 'Other' }
+                    ]}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     required
-                  >
-                    <option value="">Select a subject</option>
-                    <option value="Account">Account</option>
-                    <option value="Billing">Billing</option>
-                    <option value="Claims">Claims</option>
-                    <option value="Technical Issue">Technical Issue</option>
-                    <option value="Other">Other</option>
-                  </select>
+                  />
                 </div>
                
                 <div>
@@ -273,8 +280,9 @@ const Feedback: React.FC = () => {
                     Attachment (optional)
                   </Label>
                   <div className="flex items-center gap-2">
-                    <input
+                    <TextField
                       type="file"
+                      value={''}
                       onChange={handleFileUpload}
                       className="hidden"
                       id="file-upload"
@@ -352,11 +360,12 @@ const Feedback: React.FC = () => {
  
               <div className="space-y-2">
                 <label className="flex items-center gap-2">
-                  <input
+                  <TextField
                     type="checkbox"
                     checked={feedback.contactConsent}
                     onChange={(e) => setFeedback(prev => ({ ...prev, contactConsent: e.target.checked }))}
                     className="rounded"
+                    value={feedback.contactConsent ? 'on' : ''}
                   />
                   <TextSmall>
                     I'm open to being contacted about my feedback
@@ -367,7 +376,7 @@ const Feedback: React.FC = () => {
                   <div className="grid md:grid-cols-2 gap-4 mt-3">
                     <div>
                       <Label>Name</Label>
-                      <input
+                      <TextField
                         type="text"
                         value={feedback.name}
                         onChange={(e) => setFeedback(prev => ({ ...prev, name: e.target.value }))}
@@ -377,7 +386,7 @@ const Feedback: React.FC = () => {
                     </div>
                     <div>
                       <Label>Email</Label>
-                      <input
+                      <TextField
                         type="email"
                         value={feedback.email}
                         onChange={(e) => setFeedback(prev => ({ ...prev, email: e.target.value }))}

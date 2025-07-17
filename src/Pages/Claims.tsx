@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Upload, FileText, Eye, Download, X } from 'lucide-react';
 import { Button, Table, H1, H2, H3, Text, TextSmall, TextLarge, Label } from '../components/common';
+import { TextField, Dropdown } from '../components/common';
 
 interface ClaimData {
   id: string;
@@ -19,6 +20,8 @@ interface FileUpload {
   size: number;
   type: string;
 }
+
+
 
 const Claims: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'new' | 'existing'>('new');
@@ -114,40 +117,41 @@ const Claims: React.FC = () => {
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <Label>Vehicle Make</Label>
-                <input
-                  type="text"
+                <TextField
                   value={formData.vehicleMake}
                   onChange={(e) => handleInputChange('vehicleMake', e.target.value)}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="Vehicle Make"
                 />
               </div>
               <div>
                 <Label>Vehicle Model</Label>
-                <input
-                  type="text"
+                <TextField
                   value={formData.vehicleModel}
                   onChange={(e) => handleInputChange('vehicleModel', e.target.value)}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="Vehicle Model"
                 />
               </div>
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <Label>Vehicle Year</Label>
-                <input
+                <TextField
                   type="number"
                   value={formData.vehicleYear}
                   onChange={(e) => handleInputChange('vehicleYear', e.target.value)}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="Vehicle Year"
                 />
               </div>
               <div>
                 <Label>VIN Number</Label>
-                <input
-                  type="text"
+                <TextField
                   value={formData.vehicleVIN}
                   onChange={(e) => handleInputChange('vehicleVIN', e.target.value)}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="Vehicle VIN"
                 />
               </div>
             </div>
@@ -167,18 +171,20 @@ const Claims: React.FC = () => {
           <div className="space-y-4">
             <div>
               <Label>Type of Damage</Label>
-              <select
+              <Dropdown
                 value={formData.damageType}
                 onChange={(e) => handleInputChange('damageType', e.target.value)}
+                options={[
+                  { value: '', label: 'Select damage type' },
+                  { value: 'Fire', label: 'Fire' },
+                  { value: 'Water', label: 'Water' },
+                  { value: 'Theft', label: 'Theft' },
+                  { value: 'Storm', label: 'Storm' },
+                  { value: 'Vandalism', label: 'Vandalism' }
+                ]}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              >
-                <option value="">Select damage type</option>
-                <option value="Fire">Fire</option>
-                <option value="Water">Water</option>
-                <option value="Theft">Theft</option>
-                <option value="Storm">Storm</option>
-                <option value="Vandalism">Vandalism</option>
-              </select>
+                aria-label="Type of Damage"
+              />
             </div>
             <div>
               <Label>Damaged or Lost Items</Label>
@@ -191,15 +197,17 @@ const Claims: React.FC = () => {
             </div>
             <div>
               <Label>Temporary Repairs Made?</Label>
-              <select
+              <Dropdown
                 value={formData.tempRepairs}
                 onChange={(e) => handleInputChange('tempRepairs', e.target.value)}
+                options={[
+                  { value: '', label: 'Select option' },
+                  { value: 'Yes', label: 'Yes' },
+                  { value: 'No', label: 'No' }
+                ]}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              >
-                <option value="">Select option</option>
-                <option value="Yes">Yes</option>
-                <option value="No">No</option>
-              </select>
+                aria-label="Temporary Repairs Made"
+              />
             </div>
           </div>
         );
@@ -208,29 +216,30 @@ const Claims: React.FC = () => {
           <div className="space-y-4">
             <div>
               <Label>Date of Treatment</Label>
-              <input
+              <TextField
                 type="date"
                 value={formData.treatmentDate}
                 onChange={(e) => handleInputChange('treatmentDate', e.target.value)}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="Treatment Date"
               />
             </div>
             <div>
               <Label>Provider Name & Facility</Label>
-              <input
-                type="text"
+              <TextField
                 value={formData.providerName}
                 onChange={(e) => handleInputChange('providerName', e.target.value)}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="Provider Name"
               />
             </div>
             <div>
               <Label>Diagnosis/ICD Code</Label>
-              <input
-                type="text"
+              <TextField
                 value={formData.diagnosis}
                 onChange={(e) => handleInputChange('diagnosis', e.target.value)}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="Diagnosis"
               />
             </div>
           </div>
@@ -240,33 +249,35 @@ const Claims: React.FC = () => {
           <div className="space-y-4">
             <div>
               <Label>Beneficiary Full Name</Label>
-              <input
-                type="text"
+              <TextField
                 value={formData.beneficiaryName}
                 onChange={(e) => handleInputChange('beneficiaryName', e.target.value)}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="Beneficiary Name"
               />
             </div>
             <div>
               <Label>Relationship to Insured</Label>
-              <input
-                type="text"
+              <TextField
                 value={formData.relationship}
                 onChange={(e) => handleInputChange('relationship', e.target.value)}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="Relationship"
               />
             </div>
             <div>
               <Label>Preferred Payout Method</Label>
-              <select
+              <Dropdown
                 value={formData.payoutMethod}
                 onChange={(e) => handleInputChange('payoutMethod', e.target.value)}
+                options={[
+                  { value: '', label: 'Select payout method' },
+                  { value: 'Lump Sum', label: 'Lump Sum' },
+                  { value: 'Installments', label: 'Installments' }
+                ]}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              >
-                <option value="">Select payout method</option>
-                <option value="Lump Sum">Lump Sum</option>
-                <option value="Installments">Installments</option>
-              </select>
+                aria-label="Preferred Payout Method"
+              />
             </div>
           </div>
         );
@@ -351,6 +362,7 @@ const Claims: React.FC = () => {
       <div className="max-w-6xl mx-auto p-6">
         {/* Header */}
         <div className="mb-8">
+          <H1>Want to raise a claim?</H1>
           
           <Text>Submit a new claim or view your existing claims</Text>
         </div>
@@ -387,57 +399,61 @@ const Claims: React.FC = () => {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <Label>Policy Number</Label>
-                    <input
-                      type="text"
+                    <TextField
                       value={formData.policyNumber}
                       onChange={(e) => handleInputChange('policyNumber', e.target.value)}
                       className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                       required
+                      placeholder="Policy Number"
                     />
                   </div>
                   <div>
                     <Label>Policy Type</Label>
-                    <select
+                    <Dropdown
                       value={formData.policyType}
                       onChange={(e) => handleInputChange('policyType', e.target.value)}
+                      options={[
+                        { value: '', label: 'Select policy type' },
+                        { value: 'Auto', label: 'Auto' },
+                        { value: 'Homeowners', label: 'Homeowners' },
+                        { value: 'Health', label: 'Health' },
+                        { value: 'Life', label: 'Life' }
+                      ]}
                       className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                       required
-                    >
-                      <option value="">Select policy type</option>
-                      <option value="Auto">Auto</option>
-                      <option value="Homeowners">Homeowners</option>
-                      <option value="Health">Health</option>
-                      <option value="Life">Life</option>
-                    </select>
+                      aria-label="Policy Type"
+                    />
                   </div>
                   <div>
                     <Label>Insured Person's Full Name</Label>
-                    <input
-                      type="text"
+                    <TextField
                       value={formData.insuredName}
                       onChange={(e) => handleInputChange('insuredName', e.target.value)}
                       className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                       required
+                      placeholder="Insured Person's Full Name"
                     />
                   </div>
                   <div>
                     <Label>Phone</Label>
-                    <input
+                    <TextField
                       type="tel"
                       value={formData.phone}
                       onChange={(e) => handleInputChange('phone', e.target.value)}
                       className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                       required
+                      placeholder="Phone"
                     />
                   </div>
                   <div className="md:col-span-2">
                     <Label>Email</Label>
-                    <input
+                    <TextField
                       type="email"
                       value={formData.email}
                       onChange={(e) => handleInputChange('email', e.target.value)}
                       className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                       required
+                      placeholder="Email"
                     />
                   </div>
                 </div>
@@ -449,49 +465,53 @@ const Claims: React.FC = () => {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <Label>Date of Incident</Label>
-                    <input
+                    <TextField
                       type="date"
                       value={formData.incidentDate}
                       onChange={(e) => handleInputChange('incidentDate', e.target.value)}
                       className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                       required
+                      placeholder="Date of Incident"
                     />
                   </div>
                   <div>
                     <Label>Time of Incident</Label>
-                    <input
+                    <TextField
                       type="time"
                       value={formData.incidentTime}
                       onChange={(e) => handleInputChange('incidentTime', e.target.value)}
                       className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                       required
+                      placeholder="Time of Incident"
                     />
                   </div>
                   <div>
                     <Label>Location of Incident</Label>
-                    <input
-                      type="text"
+                    <TextField
                       value={formData.incidentLocation}
                       onChange={(e) => handleInputChange('incidentLocation', e.target.value)}
                       className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                       required
+                      placeholder="Location of Incident"
                     />
                   </div>
                   <div>
                     <Label>Type of Incident</Label>
-                    <select
+                    <Dropdown
                       value={formData.incidentType}
                       onChange={(e) => handleInputChange('incidentType', e.target.value)}
+                      options={[
+                        { value: '', label: 'Select incident type' },
+                        { value: 'Accident', label: 'Accident' },
+                        { value: 'Theft', label: 'Theft' },
+                        { value: 'Damage', label: 'Damage' },
+                        { value: 'Injury', label: 'Injury' },
+                        { value: 'Other', label: 'Other' }
+                      ]}
                       className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                       required
-                    >
-                      <option value="">Select incident type</option>
-                      <option value="Accident">Accident</option>
-                      <option value="Theft">Theft</option>
-                      <option value="Damage">Damage</option>
-                      <option value="Injury">Injury</option>
-                      <option value="Other">Other</option>
-                    </select>
+                      aria-label="Type of Incident"
+                    />
                   </div>
                   <div className="md:col-span-2">
                     <Label>Brief Description</Label>
@@ -599,12 +619,12 @@ const Claims: React.FC = () => {
                   </div>
                   <div>
                     <Label>Digital Signature (Type Full Name)</Label>
-                    <input
-                      type="text"
+                    <TextField
                       value={formData.digitalSignature}
                       onChange={(e) => handleInputChange('digitalSignature', e.target.value)}
                       className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                       required
+                      placeholder="Digital Signature (Type Full Name)"
                     />
                   </div>
                 </div>
